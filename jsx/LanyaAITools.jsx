@@ -1,8 +1,25 @@
 ﻿#target illustrator
+#targetengine main
 
-// 创建面板   初始版，使用 dialog
-var panel = new Window("dialog", "蘭雅 Adobe Illustrator 工具箱© 2023.11.11");
-// var panel = new Window("palette", "蘭雅 Adobe Illustrator 工具箱© 2023.11.11");
+var vs = "illustrator-" + app.version.substr(0, 2);
+var panel = new Window("palette", "蘭雅 Adobe Illustrator 工具箱© 2023.11.11");
+
+// 创建面板 使用 new Window("palette") ，需要 BridgeTalk, 它是 Adobe 应用程序之间进行通信的一种机制。
+// 它允许不同的 Adobe 应用程序在同一台计算机上进行交互和数据共享。
+// var bt = new BridgeTalk();
+// bt.target = "photoshop"; // 目标应用程序名称
+// bt.body = "alert('Hello from Illustrator!')"; // 要发送的消息或脚本
+// bt.send();
+// 实际代码建立 buildMsg(code) 函数传送代码
+function buildMsg(code) {
+  try {
+    var bt = new BridgeTalk;
+    bt.target = vs;
+    var msg = code;
+    bt.body = msg;
+    bt.send();
+  } catch (e) { }
+}
 
 with (panel) {
   // 创建按钮组
@@ -29,31 +46,31 @@ with (panel) {
 
   // 按钮点击事件处理程序
   button1.onClick = function () {
-    make_size(); panel.close();
+    buildMsg("make_size();");
   };
 
   button2.onClick = function () {
-    filename_date(); panel.close();
+    buildMsg("filename_date();");
   };
 
   button3.onClick = function () {
-    mark_5mm(); panel.close();
+    buildMsg("mark_5mm();");
   };
 
   button4.onClick = function () {
-    size_to_integer(); panel.close();
+    buildMsg("size_to_integer();");
   };
 
   button5.onClick = function () {
-    replace_align_position(); panel.close();
+    buildMsg("replace_align_position();");
   };
 
   button6.onClick = function () {
-    size_by_width_height(); panel.close();
+    buildMsg("size_by_width_height();");
   };
 
   button7.onClick = function () {
-    size_by_controlBounds(); panel.close();
+    buildMsg("size_by_controlBounds();");
   };
 }
 // 显示面板

@@ -7,6 +7,9 @@ This is a collection of JS scripts for Adobe Illustrator. All scripts created by
 [![](./img/lyjsx.png)](./jsx/LanyaAITools.jsx)
 
 
+## Original UI BridgeTalk framework
+![](./img/UI_BridgeTalk.png)
+
 ## [Adobe Illustrator JSX script demo using BridgeTalk to communicate with palette window.jsx](./jsx/Adobe%20Illustrator%20JSX%20script%20demo%20using%20BridgeTalk%20to%20communicate%20with%20palette%20window.jsx)
 
 
