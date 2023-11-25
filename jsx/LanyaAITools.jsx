@@ -156,7 +156,7 @@ function main_panel() {
 
 function icon_panel() {
   var panel = new Window("palette", "©蘭雅 Adobe Illustrator 工具箱");
-  panel.onClose = function() {
+  panel.onClose = function () {
     saveWindowPosition(panel);
   };
   panel.alignChildren = ["left", "top"];
@@ -250,9 +250,9 @@ function icon_panel() {
 
   button4.onClick = function () {
     if (ScriptUI.environment.keyboardState.ctrlKey) {
-      buildMsg("modify_size(-" + micro_distance +", -" + micro_distance +");");
+      buildMsg("modify_size(-" + micro_distance + ", -" + micro_distance + ");");
     } else if (ScriptUI.environment.keyboardState.altKey) {
-      buildMsg("modify_size(" + micro_distance +", " + micro_distance +");");
+      buildMsg("modify_size(" + micro_distance + ", " + micro_distance + ");");
     } else if (ScriptUI.environment.keyboardState.shiftKey) {
       //  alert("ScriptUI.environment.keyboardState.shiftKey");
       var input = prompt("请输如宽和高两个数字(例如: 100 80):", "100 80");
@@ -299,7 +299,7 @@ function icon_panel() {
 
   button8.onClick = function () {
     if (ScriptUI.environment.keyboardState.ctrlKey) {
-      micro_distance = prompt("设置微调距离(mm): ", micro_distance);      
+      micro_distance = prompt("设置微调距离(mm): ", micro_distance);
     } else if (ScriptUI.environment.keyboardState.altKey) {
       mini_panel();
       panel.close();
@@ -365,6 +365,30 @@ var mm = 25.4 / 72;  // pt 和 mm 转换系数
 function formatSize(size) {
   return Math.round(size * mm).toFixed(0);
 }
+
+// 获得选择对象的边界框
+function get_Sel_Bounds() {
+  var totalBounds = null;
+  var sr = app.activeDocument.selection;
+  for (var i = 0; i < sr.length; i++) {
+    var item = sr[i];
+
+    // 获取对象的边界框
+    var bounds = item.geometricBounds;
+
+    // 更新总范围
+    if (totalBounds === null) {
+      totalBounds = bounds.slice(); // 创建边界框的副本
+    } else {
+      totalBounds[0] = Math.min(totalBounds[0], bounds[0]); // 左边界
+      totalBounds[1] = Math.max(totalBounds[1], bounds[1]); // 上边界
+      totalBounds[2] = Math.max(totalBounds[2], bounds[2]); // 右边界
+      totalBounds[3] = Math.min(totalBounds[3], bounds[3]); // 下边界
+    }
+  }
+  return totalBounds;
+}
+
 // 标注尺寸
 function make_size() {
   // 定义当前激活文档
@@ -427,20 +451,26 @@ function filename_date() {
 
   var base = new Array();
   base = docRef.rulerOrigin;    // 画板标尺原点，相对于画板的左上角
-  // alert("画板标尺原点mm  x:" + base[0] * mm +" y:" + base[1] * mm + "\n画板大小mm 宽:" + docRef.width * mm +"  高:" + docRef.height * mm);
 
-  var pw = 0;
-  var ph = 0;
+  // 默认使用文档页面作为范围
+  var pw = docRef.width;  //  文档宽
+  var ph = docRef.height; //  文档高
   var x = base[0];    // 画板左下角 x 坐标
   var y = - base[1];  // 画板左下角 y 坐标
+  x = pw / 2 - x;     //  转换x坐标: 画板中下x
+
+  // 如果选择物件，使用物件范围
+  if (app.activeDocument.selection.length > 0) {
+    var bounds = new Array();
+    bounds = get_Sel_Bounds();
+    x = (bounds[0] + bounds[2]) / 2;
+    y = bounds[3];
+  }
+
   var myFont = textFonts.getByName("MicrosoftYaHei");
   var myFontSize = 8;
 
-  pw = docRef.width;  //  文档宽
-  ph = docRef.height; //  文档高
-  x = pw / 2 - x;     //  转换x坐标: 画板中下x
-
-  function filenameDate() {
+  function writeText() {
     var textRef = docRef.textFrames.add();    // 建立文本
     textRef.contents = str;                   // 填充文本字符串:   AI文档名称 + 时间
     textRef.textRange.characterAttributes.size = myFontSize;   // 设置字体尺寸
@@ -450,9 +480,7 @@ function filename_date() {
     textRef.left = x - textRef.width - 10;   // 画板x中，偏移文本宽和间隔宽
     textRef.selected = true;
   }
-
-  filenameDate();
-
+  writeText();
 }
 
 // 借咬口5mm
@@ -465,16 +493,21 @@ function mark_5mm() {
   var base = new Array();
   base = docRef.rulerOrigin;    // 画板标尺原点，相对于画板的左上角
 
-  var pw = 0;
-  var ph = 0;
+  // 默认使用文档页面作为范围
   var x = base[0];    // 画板左下角 x 坐标
   var y = - base[1];  // 画板左下角 y 坐标
-  var myFont = textFonts.getByName("MicrosoftYaHei");
-  var myFontSize = 64;
+  x = docRef.width / 2 - x;     //  转换x坐标: 画板中下x
 
-  pw = docRef.width;  //  文档宽
-  ph = docRef.height; //  文档高
-  x = pw / 2 - x;     //  转换x坐标: 画板中下x
+  // 如果选择物件，使用物件范围
+  if (app.activeDocument.selection.length > 0) {
+    var bounds = new Array();
+    bounds = get_Sel_Bounds();
+    x = (bounds[0] + bounds[2]) / 2;
+    y = bounds[3];
+  }
+
+  var myFont = textFonts.getByName("MicrosoftYaHei");
+  var myFontSize = 144;
 
   // 设置填充颜色为CMYK红色 (0, 100, 100, 0)
   var cmykRed = new CMYKColor();
@@ -489,7 +522,7 @@ function mark_5mm() {
     textRef.textRange.characterAttributes.size = myFontSize;   // 设置字体尺寸
     textRef.textRange.characterAttributes.textFont = myFont;   // 设置字体名称
     textRef.textRange.characterAttributes.fillColor = cmykRed  // docRef.swatches[4].color;  // 从颜色版取色简单，但是结果不确定
-    textRef.top = y - 15;    // 画板底向上偏移
+    textRef.top = y - 144; 
     textRef.left = x - textRef.width / 2;   // 画板x中，偏移文本宽和间隔宽
     textRef.selected = true;
   }
@@ -641,30 +674,17 @@ function load_jsxbin(file) {
   if (file.open('r')) {
     var fileContent = file.read();
     file.close();
-    var swap1Message = fileContent;
-    buildMsg(swap1Message);
+    buildMsg(fileContent);
   } else {
     alert('文件打开失败: ' + file);
   }
 }
-
 //==========  以下插件引用使用互联网各位大大的插件  =================//
 // 标注尺寸增强版 V2.1
-function make_size_plus() {
-  load_jsxbin("c:/TSP/icon/makesize.dat");
-}
-
+function make_size_plus() { load_jsxbin(IconsFolder + "/makesize.dat"); }
 // 自动群组
-function auto_group() {
-  load_jsxbin("c:/TSP/icon/autogroup.dat");
-}
-
+function auto_group() { load_jsxbin(IconsFolder + "/autogroup.dat"); }
 // 调整尺寸
-function ResizeToSize() {
-  load_jsxbin("c:/TSP/icon/resize.dat");
-}
-
+function ResizeToSize() { load_jsxbin(IconsFolder + "/resize.dat"); }
 // 打包链接图片
-function img_pack_links() {
-  load_jsxbin("c:/TSP/icon/packlinks.dat");
-}
+function img_pack_links() { load_jsxbin(IconsFolder + "/packlinks.dat"); }
