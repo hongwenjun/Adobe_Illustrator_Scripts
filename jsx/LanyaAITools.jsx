@@ -2,11 +2,8 @@
 #targetengine main
 
 var vs = "illustrator-" + app.version.substr(0, 2);
-<<<<<<< HEAD
 var IconsFolder = "C:/TSP/icon";
 var micro_distance = "1";
-=======
->>>>>>> 7870767f2322bded3446659ce9226d73731e4286
 // 实际代码建立 buildMsg(code) 函数传送代码
 function buildMsg(code) {
   try {
@@ -17,7 +14,6 @@ function buildMsg(code) {
     bt.send();
   } catch (e) { }
 }
-<<<<<<< HEAD
 // 创建面板 使用 new Window("palette") ，需要 BridgeTalk, 它是 Adobe 应用程序之间进行通信的一种机制。
 // 它允许不同的 Adobe 应用程序在同一台计算机上进行交互和数据共享。
 // var bt = new BridgeTalk();
@@ -32,21 +28,6 @@ function main_panel() {
   panel.spacing = 2;
   panel.margins = 3;
 
-=======
-  // 创建面板 使用 new Window("palette") ，需要 BridgeTalk, 它是 Adobe 应用程序之间进行通信的一种机制。
-  // 它允许不同的 Adobe 应用程序在同一台计算机上进行交互和数据共享。
-  // var bt = new BridgeTalk();
-  // bt.target = "photoshop"; // 目标应用程序名称
-  // bt.body = "alert('Hello from Illustrator!')"; // 要发送的消息或脚本
-  // bt.send();
-
-main_panel();
-function main_panel() {
-  var panel = new Window("palette", "蘭雅 Adobe Illustrator 工具箱© 2023.11.11");
-  panel.alignChildren = ["left", "top"];
-  panel.spacing = 2;
-  panel.margins = 3;
->>>>>>> 7870767f2322bded3446659ce9226d73731e4286
   // 创建按钮组
   var BtGroup1 = panel.add("group");
   var BtGroup2 = panel.add("group");
@@ -55,23 +36,7 @@ function main_panel() {
   BtGroup1.orientation = "row";
   BtGroup2.orientation = "row";
 
-<<<<<<< HEAD
   // 设置按钮组的边缘间距 
-=======
-  // 添加按钮
-  var button1 = BtGroup1.add("button", undefined, "标注尺寸");
-  var button2 = BtGroup1.add("button", undefined, "文件名日期");
-  var button3 = BtGroup1.add("button", undefined, "借咬口5mm");
-  var button4 = BtGroup1.add("button", undefined, "尺寸取整");
-
-  var button5 = BtGroup2.add("button", undefined, "拼版左上对齐");
-  var button6 = BtGroup2.add("button", undefined, "物件尺寸大小");
-  var button7 = BtGroup2.add("button", undefined, "物件轮廓边界");
-  var button8 = BtGroup2.add("button", undefined, "▲");
-  button8.preferredSize = [26, 26];
-
-  // 设置按钮组的边缘间距  设置按钮间距
->>>>>>> 7870767f2322bded3446659ce9226d73731e4286
   BtGroup1.spacing = 2; // 调整按钮之间的间距
   BtGroup2.spacing = 2;
 
@@ -179,10 +144,7 @@ function main_panel() {
     }
   };
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 7870767f2322bded3446659ce9226d73731e4286
   button8.onClick = function () {
     icon_panel();
     panel.close();
@@ -190,7 +152,6 @@ function main_panel() {
 
   // 显示面板
   panel.show();
-<<<<<<< HEAD
 }
 
 function icon_panel() {
@@ -395,89 +356,6 @@ function restoreWindowPosition(window) {
     window.bounds.bottom = parseInt(position[3]);
   }
 }
-=======
-}
-
-function icon_panel() {
-  var panel = new Window("palette", "蘭雅 Adobe Illustrator 工具箱© 2023.11.11");
-  panel.alignChildren = ["left", "top"];
-  panel.spacing = 2;
-  panel.margins = 3;
-  // 创建按钮组
-  var BtGroup1 = panel.add("group");
-  var BtGroup2 = panel.add("group");
-
-  // 设置按钮组为水平布局
-  BtGroup1.orientation = "row";
-  BtGroup2.orientation = "row";
-
-  // 设置按钮组的边缘间距 
-  BtGroup1.spacing = 2; // 调整按钮之间的间距
-  BtGroup2.spacing = 2;
-
-  scriptFile = new File($.fileName); // 获取当前脚本文件的路径
-  var iconFile = new File(scriptFile.path + "/icon/icon.png"); // 拼接图标文件的完整路径
-
-  // 添加图标按钮
-  var button1 = BtGroup1.add("iconbutton", undefined, iconFile);
-  var button2 = BtGroup1.add("iconbutton", undefined, iconFile);
-  var button3 = BtGroup1.add("iconbutton", undefined, iconFile);
-  var button4 = BtGroup1.add("iconbutton", undefined, iconFile);
-
-  var button5 = BtGroup2.add("iconbutton", undefined, iconFile);
-  var button6 = BtGroup2.add("iconbutton", undefined, iconFile);
-  var button7 = BtGroup2.add("iconbutton", undefined, iconFile);
-  var button8 = BtGroup2.add("iconbutton", undefined, iconFile);
-
-  // 设置按钮大小与图片大小相同
-  button1.preferredSize = [48, 48]; 
-  button2.preferredSize = [48, 48]; 
-  button3.preferredSize = [48, 48]; 
-  button4.preferredSize = [48, 48]; 
-  button5.preferredSize = [48, 48]; 
-  button6.preferredSize = [48, 48]; 
-  button7.preferredSize = [48, 48]; 
-  button8.preferredSize = [48, 48]; 
-
-  // 按钮点击事件处理程序
-  button1.onClick = function () {
-    buildMsg("make_size();");
-  };
-
-  button2.onClick = function () {
-    buildMsg("filename_date();");
-  };
-
-  button3.onClick = function () {
-    buildMsg("mark_5mm();");
-  };
-
-  button4.onClick = function () {
-    buildMsg("size_to_integer();");
-  };
-
-  button5.onClick = function () {
-    buildMsg("replace_align_position();");
-  };
-
-  button6.onClick = function () {
-    buildMsg("size_by_width_height();");
-  };
-
-  button7.onClick = function () {
-    buildMsg("size_by_controlBounds();");
-  };
-
-  button8.onClick = function () {
-    main_panel();
-    panel.close();
-  };
-
-  // 显示面板
-  panel.show();
-}
-
->>>>>>> 7870767f2322bded3446659ce9226d73731e4286
 
 //==================================================================================//
 // 蘭雅 Adobe Illustrator 工具箱© 2023.11.11  各个按钮功能模块
