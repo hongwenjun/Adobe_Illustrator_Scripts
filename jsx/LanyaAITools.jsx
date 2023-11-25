@@ -2,14 +2,6 @@
 #targetengine main
 
 var vs = "illustrator-" + app.version.substr(0, 2);
-var panel = new Window("palette", "蘭雅 Adobe Illustrator 工具箱© 2023.11.11");
-
-// 创建面板 使用 new Window("palette") ，需要 BridgeTalk, 它是 Adobe 应用程序之间进行通信的一种机制。
-// 它允许不同的 Adobe 应用程序在同一台计算机上进行交互和数据共享。
-// var bt = new BridgeTalk();
-// bt.target = "photoshop"; // 目标应用程序名称
-// bt.body = "alert('Hello from Illustrator!')"; // 要发送的消息或脚本
-// bt.send();
 // 实际代码建立 buildMsg(code) 函数传送代码
 function buildMsg(code) {
   try {
@@ -20,8 +12,20 @@ function buildMsg(code) {
     bt.send();
   } catch (e) { }
 }
+// 创建面板 使用 new Window("palette") ，需要 BridgeTalk, 它是 Adobe 应用程序之间进行通信的一种机制。
+// 它允许不同的 Adobe 应用程序在同一台计算机上进行交互和数据共享。
+// var bt = new BridgeTalk();
+// bt.target = "photoshop"; // 目标应用程序名称
+// bt.body = "alert('Hello from Illustrator!')"; // 要发送的消息或脚本
+// bt.send();
 
-with (panel) {
+icon_panel(); // main_panel();
+function main_panel() {
+  var panel = new Window("palette", "蘭雅 Adobe Illustrator 工具箱© 2023.11.11");
+  panel.alignChildren = ["left", "top"];
+  panel.spacing = 2;
+  panel.margins = 3;
+
   // 创建按钮组
   var BtGroup1 = panel.add("group");
   var BtGroup2 = panel.add("group");
@@ -30,31 +34,55 @@ with (panel) {
   BtGroup1.orientation = "row";
   BtGroup2.orientation = "row";
 
+  // 设置按钮组的边缘间距 
+  BtGroup1.spacing = 2; // 调整按钮之间的间距
+  BtGroup2.spacing = 2;
+
   // 添加按钮
   var button1 = BtGroup1.add("button", undefined, "标注尺寸");
-  var button2 = BtGroup1.add("button", undefined, "文件名日期");
-  var button3 = BtGroup1.add("button", undefined, "借咬口5mm");
+  var button2 = BtGroup1.add("button", undefined, "批量旋转");
+  var button3 = BtGroup1.add("button", undefined, "文件日期");
   var button4 = BtGroup1.add("button", undefined, "尺寸取整");
 
   var button5 = BtGroup2.add("button", undefined, "拼版左上对齐");
   var button6 = BtGroup2.add("button", undefined, "物件尺寸大小");
   var button7 = BtGroup2.add("button", undefined, "物件轮廓边界");
+  var button8 = BtGroup2.add("button", undefined, "▲");
+  button8.preferredSize = [26, 26];
 
-  // 设置按钮组的边缘间距  设置按钮间距
-  BtGroup1.spacing = 2; // 调整按钮之间的间距
-  BtGroup2.spacing = 2;
+  button1.helpTip = "标注尺寸, <Alt>增强标注";
+  button2.helpTip = "批量左转90度，<Alt>转180度, <Ctrl>任意角度";
+  button3.helpTip = "咬口处插入文件名日期,<Alt>红色备注文字";
 
   // 按钮点击事件处理程序
   button1.onClick = function () {
-    buildMsg("make_size();");
+    if (ScriptUI.environment.keyboardState.altKey) {
+      // Alt 键被按下
+      make_size_plus();
+    } else {
+      buildMsg("make_size();");
+    }
   };
 
   button2.onClick = function () {
-    buildMsg("filename_date();");
+    if (ScriptUI.environment.keyboardState.ctrlKey) {
+      // Ctrl 加鼠标左键，自定义数字
+      var input = prompt("请输入角度数字:", "45");
+      if (!isNaN(parseFloat(input)))
+        buildMsg("shapes_rotate(" + input + ");");
+    } else if (ScriptUI.environment.keyboardState.altKey) {
+      buildMsg("shapes_rotate(180);");
+    } else {
+      buildMsg("shapes_rotate(90);");
+    }
   };
 
   button3.onClick = function () {
-    buildMsg("mark_5mm();");
+    if (ScriptUI.environment.keyboardState.altKey) {
+      buildMsg("mark_5mm();");
+    } else {
+      buildMsg("filename_date();");
+    }
   };
 
   button4.onClick = function () {
@@ -66,16 +94,179 @@ with (panel) {
   };
 
   button6.onClick = function () {
-    buildMsg("size_by_width_height();");
+    if (ScriptUI.environment.keyboardState.altKey) {
+      // Alt 键被按下
+      alert("鼠标点击时按下了 Alt 键!");
+    } else {
+      // 没有按下 Alt 键
+      alert("鼠标点击!");
+    }
   };
 
   button7.onClick = function () {
-    buildMsg("size_by_controlBounds();");
+    if (ScriptUI.environment.keyboardState.altKey) {
+      buildMsg("size_by_controlBounds();");
+    } else {
+      buildMsg("size_by_width_height();");
+    }
   };
-}
-// 显示面板
-panel.show();
 
+  button8.onClick = function () {
+    icon_panel();
+    panel.close();
+  };
+
+  // 显示面板
+  panel.show();
+}
+
+function icon_panel() {
+  var panel = new Window("palette", "©蘭雅 Adobe Illustrator 工具箱");
+  panel.alignChildren = ["left", "top"];
+  panel.spacing = 2;
+  panel.margins = 3;
+  // 创建按钮组
+  var BtGroup1 = panel.add("group");
+  var BtGroup2 = panel.add("group");
+
+  // 设置按钮组为水平布局
+  BtGroup1.orientation = "row";
+  BtGroup2.orientation = "row";
+
+  // 设置按钮组的边缘间距 
+  BtGroup1.spacing = 2; // 调整按钮之间的间距
+  BtGroup2.spacing = 2;
+
+  // scriptFile = new File($.fileName); // 获取当前脚本文件的路径
+  // var iconFile = new File(scriptFile.path + "/icon/icon.png"); // 拼接图标文件的完整路径
+
+  var iconF1 = "c:/TSP/icon/size.png";
+  var iconF2 = "c:/TSP/icon/icon.png";
+  var iconF3 = "c:/TSP/icon/mark.png";
+  var iconF4 = "c:/TSP/icon/debug.png";
+  var iconF5 = "c:/TSP/icon/replace.png";
+  var iconF6 = "c:/TSP/icon/gpucard.png";
+  var iconF7 = "c:/TSP/icon/byBounds.png";
+  var iconF8 = "c:/TSP/icon/repeat.png";
+
+  // 添加图标按钮
+  var button1 = BtGroup1.add("iconbutton", undefined, iconF1);
+  var button2 = BtGroup1.add("iconbutton", undefined, iconF2);
+  var button3 = BtGroup1.add("iconbutton", undefined, iconF3);
+  var button4 = BtGroup1.add("iconbutton", undefined, iconF4);
+
+  var button5 = BtGroup2.add("iconbutton", undefined, iconF5);
+  var button6 = BtGroup2.add("iconbutton", undefined, iconF6);
+  var button7 = BtGroup2.add("iconbutton", undefined, iconF7);
+  var button8 = BtGroup2.add("iconbutton", undefined, iconF8);
+
+  button1.helpTip = "标注尺寸, <Alt>增强标注";
+  button2.helpTip = "批量左转90度，<Alt>转180度, <Ctrl>任意角度";
+  button3.helpTip = "咬口处插入文件名日期,<Alt>红色备注文字";
+  button4.helpTip = "尺寸取整, <Alt>统一大小";
+  button5.helpTip = "快速替换, <Alt>";
+  button6.helpTip = "暂时自动群组, <Alt>";
+
+
+  // 设置按钮大小与图片大小相同
+  button1.preferredSize = [48, 48];
+  button2.preferredSize = [48, 48];
+  button3.preferredSize = [48, 48];
+  button4.preferredSize = [48, 48];
+  button5.preferredSize = [48, 48];
+  button6.preferredSize = [48, 48];
+  button7.preferredSize = [48, 48];
+  button8.preferredSize = [48, 48];
+
+  // 按钮点击事件处理程序
+  button1.onClick = function () {
+    if (ScriptUI.environment.keyboardState.altKey) {
+      // Alt 键被按下
+      make_size_plus();
+    } else {
+      buildMsg("make_size();");
+    }
+  };
+
+  button2.onClick = function () {
+    if (ScriptUI.environment.keyboardState.ctrlKey) {
+      // Ctrl 加鼠标左键，自定义数字
+      var input = prompt("请输入角度数字:", "45");
+      if (!isNaN(parseFloat(input)))
+        buildMsg("shapes_rotate(" + input + ");");
+    } else if (ScriptUI.environment.keyboardState.altKey) {
+      buildMsg("shapes_rotate(180);");
+    } else {
+      buildMsg("shapes_rotate(90);");
+    }
+  };
+
+  button3.onClick = function () {
+    if (ScriptUI.environment.keyboardState.altKey) {
+      buildMsg("mark_5mm();");
+    } else {
+      buildMsg("filename_date();");
+    }
+  };
+
+  button4.onClick = function () {
+    if (ScriptUI.environment.keyboardState.ctrlKey) {
+      buildMsg("modify_size(-1, -1);");
+    } else if (ScriptUI.environment.keyboardState.altKey) {
+      buildMsg("modify_size(1, 1);");
+    } else {
+      buildMsg("size_to_integer();");
+    }
+  };
+
+  button5.onClick = function () {
+    buildMsg("replace_align_position();");
+  };
+
+  button6.onClick = function () {
+    if (ScriptUI.environment.keyboardState.altKey) {
+      ResizeToSize();
+    } else {
+      auto_group();
+    }
+  };
+
+  button7.onClick = function () {
+    if (ScriptUI.environment.keyboardState.altKey) {
+      buildMsg("size_by_controlBounds();");
+    } else {
+      buildMsg("size_by_width_height();");
+    }
+  };
+
+  button8.onClick = function () {
+    if (ScriptUI.environment.keyboardState.altKey) {
+      mini_panel();
+      panel.close();
+    } else {
+      main_panel();
+      panel.close();
+    }
+  };
+
+  // 显示面板
+  panel.show();
+}
+
+function mini_panel() {
+  var panel = new Window("palette", "©蘭");
+  panel.spacing = 0;
+  panel.margins = 0;
+  var icon = "c:/TSP/icon/repeat.png";
+  var button_mini = panel.add("iconbutton", undefined, icon);
+  button_mini.preferredSize = [40, 40];
+
+  button_mini.onClick = function () {
+    icon_panel();
+    panel.close();
+  };
+  panel.show();
+}
 //==================================================================================//
 // 蘭雅 Adobe Illustrator 工具箱© 2023.11.11  各个按钮功能模块
 //==================================================================================//
@@ -220,27 +411,46 @@ function mark_5mm() {
   writeText();
 }
 
-// 尺寸取整
+var mm = 25.4 / 72;  // pt 和 mm 转换系数
+// 格式化尺寸为 mm 取整数
+function formatSize(size) {
+  return Math.round(size * mm).toFixed(0);
+}
+
+// 批量增加减少尺寸
+function modify_size(x, y) {
+  var sr = app.activeDocument.selection;
+  for (var i = 0; i < sr.length; i++) {
+    var s = sr[i];
+    s.width = formatSize(s.width) / mm + x / mm
+    s.height = formatSize(s.height) / mm + y / mm
+  }
+}
+// 批量修改尺寸
+function set_size(x, y) {
+  var sr = app.activeDocument.selection;
+  for (var i = 0; i < sr.length; i++) {
+    var s = sr[i];
+    s.width = x / mm
+    s.height = y / mm
+  }
+}
+
+// 遍历选择的物件尺寸取整
 function size_to_integer() {
-  // 定义当前激活文档
-  var doc = activeDocument;
-  var mm = 25.4 / 72;  // pt 和 mm 转换系数
-
-  // 格式化尺寸为 mm 取整数
-  function formatSize(size) {
-    return Math.round(size * mm).toFixed(0);
+  var sr = app.activeDocument.selection;
+  for (var i = 0; i < sr.length; i++) {
+    var s = sr[i];
+    s.width = formatSize(s.width) / mm
+    s.height = formatSize(s.height) / mm
   }
+}
 
-  // 遍历选择的物件尺寸取整
-  if (doc.selection.length > 0) {
-    var src = doc.selection;
-    for (var i = 0; i < src.length; i++) {
-      var s = src[i]
-      s.width = formatSize(s.width) / mm
-      s.height = formatSize(s.height) / mm
-    }
-  }
-
+// 批量物件旋转角度
+function shapes_rotate(angle) {
+  var sr = app.activeDocument.selection;
+  for (var i = 0; i < sr.length; i++)
+    sr[i].rotate(angle);
 }
 
 // 物件轮廓边界
@@ -338,4 +548,33 @@ function replace_align_position() {
     sourceObj.remove();
 
   }
+}
+
+// 读取加载jsxbin文件，传递给AI软件
+function load_jsxbin(file) {
+  var file = new File(file);
+  if (file.open('r')) {
+    var fileContent = file.read();
+    file.close();
+    var swap1Message = fileContent;
+    buildMsg(swap1Message);
+  } else {
+    alert('文件打开失败: ' + file);
+  }
+}
+
+//==========  以下插件引用使用互联网各位大大的插件  =================//
+// 标注尺寸增强版 V2.1
+function make_size_plus() {
+  load_jsxbin("c:/TSP/icon/makesize.dat");
+}
+
+// 自动群组
+function auto_group() {
+  load_jsxbin("c:/TSP/icon/autogroup.dat");
+}
+
+// 调整尺寸
+function  ResizeToSize() {
+  load_jsxbin("c:/TSP/icon/resize.dat");
 }

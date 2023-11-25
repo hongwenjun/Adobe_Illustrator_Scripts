@@ -7,6 +7,10 @@ This is a collection of JS scripts for Adobe Illustrator. All scripts created by
 [![](./img/lyjsx.png)](./jsx/LanyaAITools.jsx)
 
 
+##  2023.11.25 Update Using Icon GUI
+![](./img/demo.gif)
+
+
 ## Original UI BridgeTalk framework
 ![](./img/UI_BridgeTalk.png)
 
