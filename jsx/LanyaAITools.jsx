@@ -2,6 +2,8 @@
 #targetengine main
 
 var vs = "illustrator-" + app.version.substr(0, 2);
+var IconsFolder = "C:/TSP/icon";
+var micro_distance = "1";
 // 实际代码建立 buildMsg(code) 函数传送代码
 function buildMsg(code) {
   try {
@@ -154,6 +156,9 @@ function main_panel() {
 
 function icon_panel() {
   var panel = new Window("palette", "©蘭雅 Adobe Illustrator 工具箱");
+  panel.onClose = function() {
+    saveWindowPosition(panel);
+  };
   panel.alignChildren = ["left", "top"];
   panel.spacing = 2;
   panel.margins = 3;
@@ -172,14 +177,14 @@ function icon_panel() {
   // scriptFile = new File($.fileName); // 获取当前脚本文件的路径
   // var iconFile = new File(scriptFile.path + "/icon/icon.png"); // 拼接图标文件的完整路径
 
-  var iconF1 = "c:/TSP/icon/size.png";
-  var iconF2 = "c:/TSP/icon/icon.png";
-  var iconF3 = "c:/TSP/icon/mark.png";
-  var iconF4 = "c:/TSP/icon/debug.png";
-  var iconF5 = "c:/TSP/icon/replace.png";
-  var iconF6 = "c:/TSP/icon/gpucard.png";
-  var iconF7 = "c:/TSP/icon/byBounds.png";
-  var iconF8 = "c:/TSP/icon/repeat.png";
+  var iconF1 = IconsFolder + "/size.png";
+  var iconF2 = IconsFolder + "/icon.png";
+  var iconF3 = IconsFolder + "/mark.png";
+  var iconF4 = IconsFolder + "/debug.png";
+  var iconF5 = IconsFolder + "/replace.png";
+  var iconF6 = IconsFolder + "/gpucard.png";
+  var iconF7 = IconsFolder + "/byBounds.png";
+  var iconF8 = IconsFolder + "/repeat.png";
 
   // 添加图标按钮
   var button1 = BtGroup1.add("iconbutton", undefined, iconF1);
@@ -196,9 +201,10 @@ function icon_panel() {
   button2.helpTip = "批量左转90度，<Alt>转180度, <Ctrl>任意角度";
   button3.helpTip = "咬口处插入文件名日期,<Alt>红色备注文字";
   button4.helpTip = "尺寸取整, <Alt-Ctrl-Shift>微调统一尺寸";
-  button5.helpTip = "快速替换, <Alt>打包连接图";
+  button5.helpTip = "左上对齐快速替换, <Alt>打包连接图";
   button6.helpTip = "自动群组, <Alt>调整尺寸";
   button7.helpTip = "尺寸复制, <Alt>包括轮廓";
+  button8.helpTip = "<Ctrl>微调距离, <Alt>最小化窗口";
 
 
   // 设置按钮大小与图片大小相同
@@ -244,9 +250,9 @@ function icon_panel() {
 
   button4.onClick = function () {
     if (ScriptUI.environment.keyboardState.ctrlKey) {
-      buildMsg("modify_size(-1, -1);");
+      buildMsg("modify_size(-" + micro_distance +", -" + micro_distance +");");
     } else if (ScriptUI.environment.keyboardState.altKey) {
-      buildMsg("modify_size(1, 1);");
+      buildMsg("modify_size(" + micro_distance +", " + micro_distance +");");
     } else if (ScriptUI.environment.keyboardState.shiftKey) {
       //  alert("ScriptUI.environment.keyboardState.shiftKey");
       var input = prompt("请输如宽和高两个数字(例如: 100 80):", "100 80");
@@ -292,7 +298,9 @@ function icon_panel() {
   };
 
   button8.onClick = function () {
-    if (ScriptUI.environment.keyboardState.altKey) {
+    if (ScriptUI.environment.keyboardState.ctrlKey) {
+      micro_distance = prompt("设置微调距离(mm): ", micro_distance);      
+    } else if (ScriptUI.environment.keyboardState.altKey) {
       mini_panel();
       panel.close();
     } else {
@@ -303,22 +311,52 @@ function icon_panel() {
 
   // 显示面板
   panel.show();
+  // 恢复窗口位置
+  restoreWindowPosition(panel);
 }
 
 function mini_panel() {
-  var panel = new Window("palette", "©蘭");
+  var panel = new Window("palette", "");
   panel.spacing = 0;
   panel.margins = 0;
-  var icon = "c:/TSP/icon/repeat.png";
+  var icon = IconsFolder + "/repeat.png";
   var button_mini = panel.add("iconbutton", undefined, icon);
   button_mini.preferredSize = [40, 40];
+  button_mini.spacing = 0;
 
   button_mini.onClick = function () {
     icon_panel();
     panel.close();
   };
   panel.show();
+  restoreWindowPosition(panel);
+  panel.bounds.height = 42;
+  panel.bounds.width = 50;
 }
+
+// 保存窗口位置
+function saveWindowPosition(window) {
+  var position = window.bounds;
+  var settingsFile = new File(IconsFolder + "/windowSettings.ini");
+  settingsFile.open("w");
+  settingsFile.write(position.left + "," + position.top + "," + position.right + "," + position.bottom);
+  settingsFile.close();
+}
+
+// 恢复窗口位置
+function restoreWindowPosition(window) {
+  var settingsFile = new File(IconsFolder + "/windowSettings.ini");
+  if (settingsFile.exists) {
+    settingsFile.open("r");
+    var position = settingsFile.read().split(",");
+    settingsFile.close();
+    window.bounds.left = parseInt(position[0]);
+    window.bounds.top = parseInt(position[1]);
+    window.bounds.right = parseInt(position[2]);
+    window.bounds.bottom = parseInt(position[3]);
+  }
+}
+
 //==================================================================================//
 // 蘭雅 Adobe Illustrator 工具箱© 2023.11.11  各个按钮功能模块
 //==================================================================================//
