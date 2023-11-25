@@ -42,17 +42,25 @@ function main_panel() {
   var button1 = BtGroup1.add("button", undefined, "标注尺寸");
   var button2 = BtGroup1.add("button", undefined, "批量旋转");
   var button3 = BtGroup1.add("button", undefined, "文件日期");
-  var button4 = BtGroup1.add("button", undefined, "尺寸取整");
+  var button4 = BtGroup1.add("button", undefined, "尺寸取整-微调-统一");
 
-  var button5 = BtGroup2.add("button", undefined, "拼版左上对齐");
-  var button6 = BtGroup2.add("button", undefined, "物件尺寸大小");
-  var button7 = BtGroup2.add("button", undefined, "物件轮廓边界");
+  var button5 = BtGroup2.add("button", undefined, "替换对齐-打包图片");
+  var button6 = BtGroup2.add("button", undefined, "自动群组-调整尺寸");
+  var button7 = BtGroup2.add("button", undefined, "尺寸复制");
   var button8 = BtGroup2.add("button", undefined, "▲");
   button8.preferredSize = [26, 26];
 
   button1.helpTip = "标注尺寸, <Alt>增强标注";
   button2.helpTip = "批量左转90度，<Alt>转180度, <Ctrl>任意角度";
   button3.helpTip = "咬口处插入文件名日期,<Alt>红色备注文字";
+  button4.helpTip = "尺寸取整, <Alt-Ctrl-Shift>微调统一尺寸";
+  button5.helpTip = "快速替换, <Alt>打包连接图";
+  button6.helpTip = "自动群组, <Alt>调整尺寸";
+  button7.helpTip = "尺寸复制, <Alt>包括轮廓";
+
+
+  // 设置按钮大小与图片大小相同
+  button8.preferredSize = [26, 26];
 
   // 按钮点击事件处理程序
   button1.onClick = function () {
@@ -86,20 +94,43 @@ function main_panel() {
   };
 
   button4.onClick = function () {
-    buildMsg("size_to_integer();");
+    if (ScriptUI.environment.keyboardState.ctrlKey) {
+      buildMsg("modify_size(-1, -1);");
+    } else if (ScriptUI.environment.keyboardState.altKey) {
+      buildMsg("modify_size(1, 1);");
+    } else if (ScriptUI.environment.keyboardState.shiftKey) {
+      //  alert("ScriptUI.environment.keyboardState.shiftKey");
+      var input = prompt("请输如宽和高两个数字(例如: 100 80):", "100 80");
+
+      // 使用正则表达式匹配数字
+      var regex = /(\d+)\s*(\d+)/;
+      var match = input.match(regex);
+
+      if (match) {
+        var number1 = parseInt(match[1]);
+        var number2 = parseInt(match[2]);
+        buildMsg("set_size(" + number1 + ", " + number2 + ");");
+      } else {
+        alert("输入格式不正确！");
+      }
+    } else {
+      buildMsg("size_to_integer();");
+    }
   };
 
   button5.onClick = function () {
-    buildMsg("replace_align_position();");
+    if (ScriptUI.environment.keyboardState.altKey) {
+      buildMsg("img_pack_links();");
+    } else {
+      buildMsg("replace_align_position();");
+    }
   };
 
   button6.onClick = function () {
     if (ScriptUI.environment.keyboardState.altKey) {
-      // Alt 键被按下
-      alert("鼠标点击时按下了 Alt 键!");
+      ResizeToSize();
     } else {
-      // 没有按下 Alt 键
-      alert("鼠标点击!");
+      auto_group();
     }
   };
 
@@ -110,6 +141,7 @@ function main_panel() {
       buildMsg("size_by_width_height();");
     }
   };
+
 
   button8.onClick = function () {
     icon_panel();
@@ -163,9 +195,10 @@ function icon_panel() {
   button1.helpTip = "标注尺寸, <Alt>增强标注";
   button2.helpTip = "批量左转90度，<Alt>转180度, <Ctrl>任意角度";
   button3.helpTip = "咬口处插入文件名日期,<Alt>红色备注文字";
-  button4.helpTip = "尺寸取整, <Alt>统一大小";
-  button5.helpTip = "快速替换, <Alt>";
-  button6.helpTip = "暂时自动群组, <Alt>";
+  button4.helpTip = "尺寸取整, <Alt-Ctrl-Shift>微调统一尺寸";
+  button5.helpTip = "快速替换, <Alt>打包连接图";
+  button6.helpTip = "自动群组, <Alt>调整尺寸";
+  button7.helpTip = "尺寸复制, <Alt>包括轮廓";
 
 
   // 设置按钮大小与图片大小相同
@@ -214,13 +247,32 @@ function icon_panel() {
       buildMsg("modify_size(-1, -1);");
     } else if (ScriptUI.environment.keyboardState.altKey) {
       buildMsg("modify_size(1, 1);");
+    } else if (ScriptUI.environment.keyboardState.shiftKey) {
+      //  alert("ScriptUI.environment.keyboardState.shiftKey");
+      var input = prompt("请输如宽和高两个数字(例如: 100 80):", "100 80");
+
+      // 使用正则表达式匹配数字
+      var regex = /(\d+)\s*(\d+)/;
+      var match = input.match(regex);
+
+      if (match) {
+        var number1 = parseInt(match[1]);
+        var number2 = parseInt(match[2]);
+        buildMsg("set_size(" + number1 + ", " + number2 + ");");
+      } else {
+        alert("输入格式不正确！");
+      }
     } else {
       buildMsg("size_to_integer();");
     }
   };
 
   button5.onClick = function () {
-    buildMsg("replace_align_position();");
+    if (ScriptUI.environment.keyboardState.altKey) {
+      buildMsg("img_pack_links();");
+    } else {
+      buildMsg("replace_align_position();");
+    }
   };
 
   button6.onClick = function () {
@@ -270,6 +322,11 @@ function mini_panel() {
 //==================================================================================//
 // 蘭雅 Adobe Illustrator 工具箱© 2023.11.11  各个按钮功能模块
 //==================================================================================//
+var mm = 25.4 / 72;  // pt 和 mm 转换系数
+// 格式化尺寸为 mm 取整数
+function formatSize(size) {
+  return Math.round(size * mm).toFixed(0);
+}
 // 标注尺寸
 function make_size() {
   // 定义当前激活文档
@@ -330,16 +387,6 @@ function filename_date() {
   var str = docRef.name;
   str = str + "     " + getdate();
 
-  // alert("本脚本建立一个文本:\n" + str);
-
-  // 文档中建立一个新文本
-  // var textRef = docRef.textFrames.add();
-  // textRef.top = 100;
-  // textRef.left = 200;
-  // textRef.contents = str;
-
-  var mm = 25.4 / 72;  // pt 和 mm 转换系数
-
   var base = new Array();
   base = docRef.rulerOrigin;    // 画板标尺原点，相对于画板的左上角
   // alert("画板标尺原点mm  x:" + base[0] * mm +" y:" + base[1] * mm + "\n画板大小mm 宽:" + docRef.width * mm +"  高:" + docRef.height * mm);
@@ -363,6 +410,7 @@ function filename_date() {
     textRef.textRange.characterAttributes.fillColor = docRef.swatches[1].color;   // 设置拼版色
     textRef.top = y + 7.4;    // 画板底向上偏移
     textRef.left = x - textRef.width - 10;   // 画板x中，偏移文本宽和间隔宽
+    textRef.selected = true;
   }
 
   filenameDate();
@@ -375,7 +423,6 @@ function mark_5mm() {
   var docRef = activeDocument;
   var str = docRef.name;
   str = "借咬口5mm"
-  var mm = 25.4 / 72;  // pt 和 mm 转换系数
 
   var base = new Array();
   base = docRef.rulerOrigin;    // 画板标尺原点，相对于画板的左上角
@@ -390,7 +437,6 @@ function mark_5mm() {
   pw = docRef.width;  //  文档宽
   ph = docRef.height; //  文档高
   x = pw / 2 - x;     //  转换x坐标: 画板中下x
-
 
   // 设置填充颜色为CMYK红色 (0, 100, 100, 0)
   var cmykRed = new CMYKColor();
@@ -407,14 +453,22 @@ function mark_5mm() {
     textRef.textRange.characterAttributes.fillColor = cmykRed  // docRef.swatches[4].color;  // 从颜色版取色简单，但是结果不确定
     textRef.top = y - 15;    // 画板底向上偏移
     textRef.left = x - textRef.width / 2;   // 画板x中，偏移文本宽和间隔宽
+    textRef.selected = true;
   }
   writeText();
 }
 
-var mm = 25.4 / 72;  // pt 和 mm 转换系数
-// 格式化尺寸为 mm 取整数
-function formatSize(size) {
-  return Math.round(size * mm).toFixed(0);
+// 批量修改尺寸
+function set_size(x, y) {
+  var sr = app.activeDocument.selection;
+  for (var i = 0; i < sr.length; i++) {
+    var s = sr[i];
+    var scale_x = x / mm / s.width * 100;
+    var scale_y = y / mm / s.height * 100;
+
+    // X, Y, Positions, FillPatterns, FillGradients, StrokePattern, LineWidths
+    s.resize(scale_x, scale_y, true, true, true, true, 100);
+  }
 }
 
 // 批量增加减少尺寸
@@ -422,17 +476,9 @@ function modify_size(x, y) {
   var sr = app.activeDocument.selection;
   for (var i = 0; i < sr.length; i++) {
     var s = sr[i];
-    s.width = formatSize(s.width) / mm + x / mm
-    s.height = formatSize(s.height) / mm + y / mm
-  }
-}
-// 批量修改尺寸
-function set_size(x, y) {
-  var sr = app.activeDocument.selection;
-  for (var i = 0; i < sr.length; i++) {
-    var s = sr[i];
-    s.width = x / mm
-    s.height = y / mm
+    var scale_x = (formatSize(s.width) / mm + x / mm) / s.width * 100;
+    var scale_y = (formatSize(s.height) / mm + y / mm) / s.height * 100;
+    s.resize(scale_x, scale_y);
   }
 }
 
@@ -441,8 +487,9 @@ function size_to_integer() {
   var sr = app.activeDocument.selection;
   for (var i = 0; i < sr.length; i++) {
     var s = sr[i];
-    s.width = formatSize(s.width) / mm
-    s.height = formatSize(s.height) / mm
+    var scale_x = formatSize(s.width) / mm / s.width * 100;
+    var scale_y = formatSize(s.height) / mm / s.height * 100;
+    s.resize(scale_x, scale_y);
   }
 }
 
@@ -575,6 +622,11 @@ function auto_group() {
 }
 
 // 调整尺寸
-function  ResizeToSize() {
+function ResizeToSize() {
   load_jsxbin("c:/TSP/icon/resize.dat");
+}
+
+// 打包链接图片
+function img_pack_links() {
+  load_jsxbin("c:/TSP/icon/packlinks.dat");
 }
