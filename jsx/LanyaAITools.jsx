@@ -64,10 +64,10 @@ function main_panel() {
   // 设置按钮大小与图片大小相同
   button8.preferredSize = [26, 26];
 
-  // 按钮点击事件处理程序
   button1.onClick = function () {
-    if (ScriptUI.environment.keyboardState.altKey) {
-      // Alt 键被按下
+    if (ScriptUI.environment.keyboardState.ctrlKey) {
+      buildMsg("shapes_info();");
+    } else if (ScriptUI.environment.keyboardState.altKey) {
       make_size_plus();
     } else {
       buildMsg("make_size();");
@@ -97,9 +97,9 @@ function main_panel() {
 
   button4.onClick = function () {
     if (ScriptUI.environment.keyboardState.ctrlKey) {
-      buildMsg("modify_size(-1, -1);");
+      buildMsg("modify_size(-" + micro_distance + ", -" + micro_distance + ");");
     } else if (ScriptUI.environment.keyboardState.altKey) {
-      buildMsg("modify_size(1, 1);");
+      buildMsg("modify_size(" + micro_distance + ", " + micro_distance + ");");
     } else if (ScriptUI.environment.keyboardState.shiftKey) {
       //  alert("ScriptUI.environment.keyboardState.shiftKey");
       var input = prompt("请输如宽和高两个数字(例如: 100 80):", "100 80");
@@ -143,7 +143,6 @@ function main_panel() {
       buildMsg("size_by_width_height();");
     }
   };
-
 
   button8.onClick = function () {
     icon_panel();
@@ -204,7 +203,7 @@ function icon_panel() {
   button5.helpTip = "左上对齐快速替换, <Alt>打包连接图";
   button6.helpTip = "自动群组, <Alt>调整尺寸";
   button7.helpTip = "尺寸复制, <Alt>包括轮廓";
-  button8.helpTip = "<Ctrl>微调距离, <Alt>最小化窗口";
+  button8.helpTip = "<Ctrl>微调距离, 最小化窗口";
 
 
   // 设置按钮大小与图片大小相同
@@ -217,10 +216,11 @@ function icon_panel() {
   button7.preferredSize = [48, 48];
   button8.preferredSize = [48, 48];
 
-  // 按钮点击事件处理程序
+
   button1.onClick = function () {
-    if (ScriptUI.environment.keyboardState.altKey) {
-      // Alt 键被按下
+    if (ScriptUI.environment.keyboardState.ctrlKey) {
+      buildMsg("shapes_info();");
+    } else if (ScriptUI.environment.keyboardState.altKey) {
       make_size_plus();
     } else {
       buildMsg("make_size();");
@@ -301,10 +301,10 @@ function icon_panel() {
     if (ScriptUI.environment.keyboardState.ctrlKey) {
       micro_distance = prompt("设置微调距离(mm): ", micro_distance);
     } else if (ScriptUI.environment.keyboardState.altKey) {
-      mini_panel();
+      main_panel();
       panel.close();
     } else {
-      main_panel();
+      mini_panel();
       panel.close();
     }
   };
@@ -316,23 +316,23 @@ function icon_panel() {
 }
 
 function mini_panel() {
-  var panel = new Window("palette", "");
-  panel.spacing = 0;
-  panel.margins = 0;
-  var icon = IconsFolder + "/repeat.png";
-  var button_mini = panel.add("iconbutton", undefined, icon);
-  button_mini.preferredSize = [40, 40];
-  button_mini.spacing = 0;
-
-  button_mini.onClick = function () {
-    icon_panel();
-    panel.close();
-  };
-  panel.show();
-  restoreWindowPosition(panel);
-  panel.bounds.height = 42;
-  panel.bounds.width = 50;
-}
+    var panel = new Window("palette", "");
+    panel.spacing = 0;
+    panel.margins = [0, 0, 0, 0];;
+    var icon = IconsFolder + "/repeat.png";
+    var button_mini = panel.add("iconbutton", undefined, icon);
+    button_mini.preferredSize = [40, 40];
+    button_mini.spacing = 0;
+  
+    button_mini.onClick = function () {
+      icon_panel();
+      panel.close();
+    };
+    panel.show();
+    restoreWindowPosition(panel);
+    panel.bounds.height = 42;
+    panel.bounds.width = 50;
+  }
 
 // 保存窗口位置
 function saveWindowPosition(window) {
@@ -433,6 +433,18 @@ function make_size() {
 
 }
 
+// 统计物件信息
+function shapes_info() {
+  var sr = app.activeDocument.selection;
+  var str = "选择物件总数:" + sr.length + "\n";
+  for (var i = 0; i < sr.length; i++) {
+    var s = sr[i];
+    var size = formatSize(s.width) + "x" + formatSize(s.height) + "mm";
+    if (i < 5) str += "第" + (i + 1) + "个尺寸: " + size + "\n";
+  }
+  alert(str);
+}
+
 // 文件名日期
 function filename_date() {
   // 获取当前时间
@@ -522,7 +534,7 @@ function mark_5mm() {
     textRef.textRange.characterAttributes.size = myFontSize;   // 设置字体尺寸
     textRef.textRange.characterAttributes.textFont = myFont;   // 设置字体名称
     textRef.textRange.characterAttributes.fillColor = cmykRed  // docRef.swatches[4].color;  // 从颜色版取色简单，但是结果不确定
-    textRef.top = y - 144; 
+    textRef.top = y - 144;
     textRef.left = x - textRef.width / 2;   // 画板x中，偏移文本宽和间隔宽
     textRef.selected = true;
   }
