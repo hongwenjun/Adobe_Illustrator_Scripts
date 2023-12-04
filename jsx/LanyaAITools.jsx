@@ -284,7 +284,7 @@ function icon_panel() {
   button6.onClick = function () {
     if (ScriptUI.environment.keyboardState.ctrlKey) {
       alert("Ctrl信息; Alt 调整尺寸; Shift重新加载脚本; 默认自动群组");
-    } else   if (ScriptUI.environment.keyboardState.altKey) {
+    } else if (ScriptUI.environment.keyboardState.altKey) {
       ResizeToSize();
     } else if (ScriptUI.environment.keyboardState.shiftKey) {
       reload_aia();
@@ -320,23 +320,23 @@ function icon_panel() {
 }
 
 function mini_panel() {
-    var panel = new Window("palette", "");
-    panel.spacing = 0;
-    panel.margins = [0, 0, 0, 0];;
-    var icon = IconsFolder + "/repeat.png";
-    var button_mini = panel.add("iconbutton", undefined, icon);
-    button_mini.preferredSize = [40, 40];
-    button_mini.spacing = 0;
-  
-    button_mini.onClick = function () {
-      icon_panel();
-      panel.close();
-    };
-    panel.show();
-    restoreWindowPosition(panel);
-    panel.bounds.height = 42;
-    panel.bounds.width = 50;
-  }
+  var panel = new Window("palette", "");
+  panel.spacing = 0;
+  panel.margins = [0, 0, 0, 0];;
+  var icon = IconsFolder + "/repeat.png";
+  var button_mini = panel.add("iconbutton", undefined, icon);
+  button_mini.preferredSize = [40, 40];
+  button_mini.spacing = 0;
+
+  button_mini.onClick = function () {
+    icon_panel();
+    panel.close();
+  };
+  panel.show();
+  restoreWindowPosition(panel);
+  panel.bounds.height = 42;
+  panel.bounds.width = 50;
+}
 
 // 保存窗口位置
 function saveWindowPosition(window) {
@@ -441,7 +441,7 @@ function make_size() {
 function shapes_info() {
   var sr = app.activeDocument.selection;
   var str = "选择物件总数:" + sr.length + "\n";
-  var text ="";
+  var text = "";
   for (var i = 0; i < sr.length; i++) {
     var s = sr[i];
     var size = formatSize(s.width) + "x" + formatSize(s.height) + "mm";
@@ -450,7 +450,7 @@ function shapes_info() {
   }
 
   alert(str);
-  
+
   // clear the current selection  清除当前选择
   app.activeDocument.selection = null;
   // add temp objects to hold text for copying  添加临时对象来保存用于复制的文本
@@ -666,25 +666,59 @@ function size_by_width_height() {
       taget.duplicate(newGroup, ElementPlacement.PLACEATEND);
     }
     taget.remove();
+  } else {
+    make_rectangle();
   }
 }
 
-function make_rectangle(){
-
+function draw_rect(x, y, w, h) {
   // 创建一个新的矩形对象
-  var rect = app.activeDocument.pathItems.rectangle(0, 0, 100 * mm, 100 * mm);
+  var rect = app.activeDocument.pathItems.rectangle(0, 0, w / mm, h / mm);
 
-  // 设置矩形的位置
-  rect.position = [0, 0];
+  // // 设置矩形的位置
+  rect.position = [x / mm, y / mm];
 
-  // 设置矩形的填充颜色
-  rect.fillColor = new RGBColor(255, 0, 0); // 这里使用红色作为示例
+  var M100 = new CMYKColor();
+  M100.magenta = 100;
 
+  // 设置矩形的填充颜色 轮廓颜色和宽度
+  // rect.fillColor = M100;
+  rect.filled = false;   // 不填充颜色 
+  rect.strokeColor = M100;
+  rect.strokeWidth = 0.3 / mm;
+  rect.stroked = true;
   // 将矩形添加到文档中
-  app.activeDocument.layers[0].pathItems.add(rect);
-
+  app.activeDocument.pathItems.add(rect);
 }
 
+// 从剪贴板数字建立矩形
+function make_rectangle() {
+  // 从剪贴版获得字符串
+  app.activeDocument.selection = null;
+  app.paste();
+  var sr = app.activeDocument.selection;
+  var str = sr[0].contents;
+  for (var i = 0; i != sr.length; i++)
+    sr[i].remove();
+
+  // 从字符串中提取储存数字对
+  // var str = '100x100mm 200x200mm 300x300mm';
+  var regex = /(\d+)/g;
+  var match;
+  var numbers = [];
+
+  while ((match = regex.exec(str)) !== null) {
+    var number = parseInt(match[1]);
+    numbers.push(number);
+  }
+
+  // 两个数字组成一对尺寸，每个尺寸绘制一个矩形
+  var sum = 0;
+  for (var i = 0; i < numbers.length / 2; i++) {
+    draw_rect(sum, 0, numbers[2 * i], numbers[2 * i + 1]);
+    sum += numbers[2 * i] + 30;
+  }
+}
 
 // 拼版左上对齐
 function replace_align_position() {
