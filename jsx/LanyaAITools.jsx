@@ -282,9 +282,13 @@ function icon_panel() {
   };
 
   button6.onClick = function () {
-    if (ScriptUI.environment.keyboardState.altKey) {
+    if (ScriptUI.environment.keyboardState.ctrlKey) {
+      alert("Ctrl信息; Alt 调整尺寸; Shift重新加载脚本; 默认自动群组");
+    } else   if (ScriptUI.environment.keyboardState.altKey) {
       ResizeToSize();
-    } else {
+    } else if (ScriptUI.environment.keyboardState.shiftKey) {
+      reload_aia();
+    } {
       auto_group();
     }
   };
@@ -437,12 +441,30 @@ function make_size() {
 function shapes_info() {
   var sr = app.activeDocument.selection;
   var str = "选择物件总数:" + sr.length + "\n";
+  var text ="";
   for (var i = 0; i < sr.length; i++) {
     var s = sr[i];
     var size = formatSize(s.width) + "x" + formatSize(s.height) + "mm";
     if (i < 5) str += "第" + (i + 1) + "个尺寸: " + size + "\n";
+    text += size + " ";
   }
+
   alert(str);
+  
+  // clear the current selection  清除当前选择
+  app.activeDocument.selection = null;
+  // add temp objects to hold text for copying  添加临时对象来保存用于复制的文本
+  var tempObj = app.activeDocument.pathItems.add();
+  var myText = app.activeDocument.textFrames.add();
+  myText.contents = text;
+  tempObj.selected = true;
+  myText.selected = true;
+  // copy the text  复制文本   // app.paste(); 粘贴
+  app.copy();
+  // remove the two temp object made for copying  删除用于复制的两个临时对象
+  tempObj.remove();
+  myText.remove();
+
 }
 
 // 文件名日期
@@ -647,6 +669,23 @@ function size_by_width_height() {
   }
 }
 
+function make_rectangle(){
+
+  // 创建一个新的矩形对象
+  var rect = app.activeDocument.pathItems.rectangle(0, 0, 100 * mm, 100 * mm);
+
+  // 设置矩形的位置
+  rect.position = [0, 0];
+
+  // 设置矩形的填充颜色
+  rect.fillColor = new RGBColor(255, 0, 0); // 这里使用红色作为示例
+
+  // 将矩形添加到文档中
+  app.activeDocument.layers[0].pathItems.add(rect);
+
+}
+
+
 // 拼版左上对齐
 function replace_align_position() {
   var docRef = activeDocument;
@@ -700,3 +739,5 @@ function auto_group() { load_jsxbin(IconsFolder + "/autogroup.dat"); }
 function ResizeToSize() { load_jsxbin(IconsFolder + "/resize.dat"); }
 // 打包链接图片
 function img_pack_links() { load_jsxbin(IconsFolder + "/packlinks.dat"); }
+// 重新加载aia脚本文件
+function reload_aia() { load_jsxbin(IconsFolder + "/reloadaia.dat"); }
