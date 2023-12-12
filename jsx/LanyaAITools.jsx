@@ -288,7 +288,7 @@ function icon_panel() {
       ResizeToSize();
     } else if (ScriptUI.environment.keyboardState.shiftKey) {
       reload_aia();
-    } {
+    } else {
       auto_group();
     }
   };
@@ -563,13 +563,18 @@ function mark_5mm() {
   writeText();
 }
 
-// 批量修改尺寸
+// 批量修改尺寸 使用蒙板几何边界尺寸
 function set_size(x, y) {
   var sr = app.activeDocument.selection;
   for (var i = 0; i < sr.length; i++) {
     var s = sr[i];
-    var scale_x = x / mm / s.width * 100;
-    var scale_y = y / mm / s.height * 100;
+    var bound = NO_CLIP_BOUNDS(s);
+// var left = bound[0]; var top = bound[1];
+    var width = bound[2] - bound[0]; 
+    var height = bound[1] - bound[3]; 
+  
+    var scale_x = x / mm / width * 100;
+    var scale_y = y / mm / height * 100;
 
     // X, Y, Positions, FillPatterns, FillGradients, StrokePattern, LineWidths
     s.resize(scale_x, scale_y, true, true, true, true, 100);
@@ -581,8 +586,12 @@ function modify_size(x, y) {
   var sr = app.activeDocument.selection;
   for (var i = 0; i < sr.length; i++) {
     var s = sr[i];
-    var scale_x = (formatSize(s.width) / mm + x / mm) / s.width * 100;
-    var scale_y = (formatSize(s.height) / mm + y / mm) / s.height * 100;
+    var bound = NO_CLIP_BOUNDS(s);
+    var width = bound[2] - bound[0]; 
+    var height = bound[1] - bound[3]; 
+
+    var scale_x = (formatSize(width) / mm + x / mm) / width * 100;
+    var scale_y = (formatSize(height) / mm + y / mm) / height * 100;
     s.resize(scale_x, scale_y);
   }
 }
@@ -592,8 +601,12 @@ function size_to_integer() {
   var sr = app.activeDocument.selection;
   for (var i = 0; i < sr.length; i++) {
     var s = sr[i];
-    var scale_x = formatSize(s.width) / mm / s.width * 100;
-    var scale_y = formatSize(s.height) / mm / s.height * 100;
+    var bound = NO_CLIP_BOUNDS(s);
+    var width = bound[2] - bound[0]; 
+    var height = bound[1] - bound[3]; 
+
+    var scale_x = formatSize(width) / mm / width * 100;
+    var scale_y = formatSize(height) / mm / height * 100;
     s.resize(scale_x, scale_y);
   }
 }
@@ -643,7 +656,7 @@ function size_by_controlBounds() {
   }
 }
 
-// 物件尺寸大小
+// 物件几何边界尺寸大小
 function size_by_width_height() {
   var doc = activeDocument;
   // 判断选择物件2个以上
@@ -657,10 +670,14 @@ function size_by_width_height() {
     // 修改taget大小, 移动到src物件左上角对齐, 复制副本
     var newGroup = taget.parent.groupItems.add();
     for (var i = 1; i < src.length; i++) {
-      var sel_xy = src[i].position;
+      var bound = NO_CLIP_BOUNDS(src[i]);
+      var left = bound[0]; var top = bound[1];
+      var width = bound[2] - bound[0]; 
+      var height = bound[1] - bound[3]; 
+      var sel_xy = new Array(left, top);
 
-      taget.width = src[i].width;
-      taget.height = src[i].height;
+      taget.width = width;
+      taget.height = height;
 
       taget.position = sel_xy;
       taget.duplicate(newGroup, ElementPlacement.PLACEATEND);
@@ -775,3 +792,79 @@ function ResizeToSize() { load_jsxbin(IconsFolder + "/resize.dat"); }
 function img_pack_links() { load_jsxbin(IconsFolder + "/packlinks.dat"); }
 // 重新加载aia脚本文件
 function reload_aia() { load_jsxbin(IconsFolder + "/reloadaia.dat"); }
+
+
+// 群组物件几何边界 // 左 上 宽 高
+// var bound = NO_CLIP_BOUNDS(s);
+// var left = bound[0]; var top = bound[1];
+// var width = bound[2] - bound[0]; var height = bound[1] - bound[3]; 
+function NO_CLIP_BOUNDS(the_obj) {
+	var NO_CLIP_OBJECTS_AND_MASKS = new Array();
+	GET_NO_CLIP_OBJECTS_AND_MASKS(the_obj);
+	var g_left = [];
+	var g_top = [];
+	var g_right = [];
+	var g_bottom = [];
+	for (var i = 0; i < NO_CLIP_OBJECTS_AND_MASKS.length; i += 1) {
+		g_left[i] = NO_CLIP_OBJECTS_AND_MASKS[i].geometricBounds[0];
+		g_top[i] = NO_CLIP_OBJECTS_AND_MASKS[i].geometricBounds[1];
+		g_right[i] = NO_CLIP_OBJECTS_AND_MASKS[i].geometricBounds[2];
+		g_bottom[i] = NO_CLIP_OBJECTS_AND_MASKS[i].geometricBounds[3];
+	}
+
+	var g_L = MIN_IN_ARRAY(g_left);
+	var g_T = MAX_IN_ARRAY(g_top);
+	var g_R = MAX_IN_ARRAY(g_right);
+	var g_B = MIN_IN_ARRAY(g_bottom);
+	return [g_L, g_T, g_R, g_B];
+
+	function GET_NO_CLIP_OBJECTS_AND_MASKS(the_obj) {
+		if (IS_CLIP(the_obj)) {
+			NO_CLIP_OBJECTS_AND_MASKS.push(the_obj.pageItems[0]);
+			return;
+		}
+		if (the_obj.constructor.name == "GroupItem") {
+			try {
+				var N_sub_obj = the_obj.pageItems.length;
+				for (var i = 0; i < N_sub_obj; i += 1) {
+					GET_NO_CLIP_OBJECTS_AND_MASKS(the_obj.pageItems[i]);
+				}
+			} catch (error) {
+
+			}
+			return;
+		}
+		NO_CLIP_OBJECTS_AND_MASKS.push(the_obj);
+		return;
+	}
+}
+function IS_CLIP(the_obj) {
+	try {
+		if (the_obj.constructor.name == "GroupItem") {
+			if (the_obj.clipped) {
+				return true;
+			}
+		}
+	} catch (error) {
+
+	}
+	return false;
+}
+function MAX_IN_ARRAY(the_array) {
+	var MAX = the_array[0];
+	for (var i = 0; i < the_array.length; i += 1) {
+		if (the_array[i] > MAX) {
+			MAX = the_array[i]
+		}
+	}
+	return MAX;
+}
+function MIN_IN_ARRAY(the_array) {
+	var MIN = the_array[0];
+	for (var i = 0; i < the_array.length; i += 1) {
+		if (the_array[i] < MIN) {
+			MIN = the_array[i]
+		}
+	}
+	return MIN;
+}
