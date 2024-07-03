@@ -23,7 +23,7 @@ function buildMsg(code) {
 
 icon_panel(); // main_panel();
 function main_panel() {
-  var panel = new Window("palette", "蘭雅 Adobe Illustrator 工具箱© 2023.11.11");
+  var panel = new Window("palette", "蘭雅 Adobe Illustrator 工具箱© 2023.12.12");
   panel.alignChildren = ["left", "top"];
   panel.spacing = 2;
   panel.margins = 3;
@@ -56,9 +56,10 @@ function main_panel() {
   button2.helpTip = "批量左转90度，<Alt>转180度, <Ctrl>任意角度";
   button3.helpTip = "咬口处插入文件名日期,<Alt>红色备注文字";
   button4.helpTip = "尺寸取整, <Alt-Ctrl-Shift>微调统一尺寸";
-  button5.helpTip = "快速替换, <Alt>打包连接图";
+  button5.helpTip = "左上对齐快速替换, <Alt>打包连接图";
   button6.helpTip = "自动群组, <Alt>调整尺寸";
   button7.helpTip = "尺寸复制, <Alt>包括轮廓";
+  button8.helpTip = "切换图标界面窗口";
 
 
   // 设置按钮大小与图片大小相同
@@ -102,16 +103,17 @@ function main_panel() {
       buildMsg("modify_size(" + micro_distance + ", " + micro_distance + ");");
     } else if (ScriptUI.environment.keyboardState.shiftKey) {
       //  alert("ScriptUI.environment.keyboardState.shiftKey");
-      var input = prompt("请输如宽和高两个数字(例如: 100 80):", "100 80");
+      var input = prompt("请输如宽和高两个数字(例如: 100  80): (或者:99.5  55.5)", "100  80");
 
       // 使用正则表达式匹配数字
-      var regex = /(\d+)\s*(\d+)/;
+      var regex = /(\d+(?:\.\d+)?)\s*(\d+(?:\.\d+)?)/;
       var match = input.match(regex);
 
       if (match) {
-        var number1 = parseInt(match[1]);
-        var number2 = parseInt(match[2]);
+        var number1 = Number(match[1]);
+        var number2 = Number(match[2]);
         buildMsg("set_size(" + number1 + ", " + number2 + ");");
+
       } else {
         alert("输入格式不正确！");
       }
@@ -123,14 +125,22 @@ function main_panel() {
   button5.onClick = function () {
     if (ScriptUI.environment.keyboardState.altKey) {
       buildMsg("img_pack_links();");
+    } else if (ScriptUI.environment.keyboardState.shiftKey) {
+      // Shift + 鼠标左键 中心对齐替换
+      buildMsg("replace_align_center();"); 
     } else {
       buildMsg("replace_align_position();");
     }
   };
 
+
   button6.onClick = function () {
-    if (ScriptUI.environment.keyboardState.altKey) {
+    if (ScriptUI.environment.keyboardState.ctrlKey) {
+      alert("Ctrl信息; Alt 调整尺寸; Shift重新加载脚本; 默认自动群组");
+    } else if (ScriptUI.environment.keyboardState.altKey) {
       ResizeToSize();
+    } else if (ScriptUI.environment.keyboardState.shiftKey) {
+      reload_aia();
     } else {
       auto_group();
     }
@@ -255,16 +265,17 @@ function icon_panel() {
       buildMsg("modify_size(" + micro_distance + ", " + micro_distance + ");");
     } else if (ScriptUI.environment.keyboardState.shiftKey) {
       //  alert("ScriptUI.environment.keyboardState.shiftKey");
-      var input = prompt("请输如宽和高两个数字(例如: 100 80):", "100 80");
+      var input = prompt("请输如宽和高两个数字(例如: 100  80): (或者:99.5  55.5)", "100  80");
 
       // 使用正则表达式匹配数字
-      var regex = /(\d+)\s*(\d+)/;
+      var regex = /(\d+(?:\.\d+)?)\s*(\d+(?:\.\d+)?)/;
       var match = input.match(regex);
 
       if (match) {
-        var number1 = parseInt(match[1]);
-        var number2 = parseInt(match[2]);
+        var number1 = Number(match[1]);
+        var number2 = Number(match[2]);
         buildMsg("set_size(" + number1 + ", " + number2 + ");");
+        
       } else {
         alert("输入格式不正确！");
       }
@@ -276,6 +287,9 @@ function icon_panel() {
   button5.onClick = function () {
     if (ScriptUI.environment.keyboardState.altKey) {
       buildMsg("img_pack_links();");
+    } else if (ScriptUI.environment.keyboardState.shiftKey) {
+      // Shift + 鼠标左键 中心对齐替换
+      buildMsg("replace_align_center();"); 
     } else {
       buildMsg("replace_align_position();");
     }
@@ -362,7 +376,7 @@ function restoreWindowPosition(window) {
 }
 
 //==================================================================================//
-// 蘭雅 Adobe Illustrator 工具箱© 2023.11.11  各个按钮功能模块
+// 蘭雅 Adobe Illustrator 工具箱© 2023.12.12  各个按钮功能模块
 //==================================================================================//
 var mm = 25.4 / 72;  // pt 和 mm 转换系数
 // 格式化尺寸为 mm 取整数
@@ -769,6 +783,48 @@ function replace_align_position() {
 
   }
 }
+
+
+// 拼版中心对齐
+function replace_align_center() {
+  var docRef = activeDocument;
+  // 判断选择物件2个以上
+  if (docRef.selection.length > 1) {
+    // 定义选择物件
+    mySelection = docRef.selection;
+
+    // 最上层物件为替换源
+    var sourceObj = docRef.selection[0];
+
+
+    // 定义数组用来保存选择物件的中心坐标 # 计算中心坐标
+    // x = (left + right) / 2    // y = (top + bottom) / 2
+    var alterObjectArray = new Array();
+    for (var i = 0; i < mySelection.length; i++) {
+      var bound = NO_CLIP_BOUNDS(mySelection[i]);
+      var sel_xy = new Array((bound[0] + bound[2]) / 2, (bound[1] + bound[3]) / 2);
+      alterObjectArray.push(sel_xy);
+    }
+    // 删除用来定位的下层物件
+    for (var i = 1; i < mySelection.length; i++) {
+      mySelection[i].remove();
+    }
+    // PageItem.duplicate 复制对象, 需要一个相对对象定位
+    var newGroup = sourceObj.parent.groupItems.add();
+    for (var i = 1; i < alterObjectArray.length; i++) {
+      
+      var bound = NO_CLIP_BOUNDS(sourceObj);
+      var src_xy = new Array((bound[0] + bound[2]) / 2, (bound[1] + bound[3]) / 2);
+      var move_xy = new Array(alterObjectArray[i][0] - src_xy[0], alterObjectArray[i][1] - src_xy[1]);
+
+      sourceObj.translate(move_xy[0], move_xy[1]);  // 移动到中心对齐位置
+      sourceObj.duplicate(newGroup, ElementPlacement.PLACEATEND);
+    }
+    sourceObj.remove();
+
+  }
+}
+
 
 // 读取加载jsxbin文件，传递给AI软件
 function load_jsxbin(file) {
