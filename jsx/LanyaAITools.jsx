@@ -127,12 +127,11 @@ function main_panel() {
       buildMsg("img_pack_links();");
     } else if (ScriptUI.environment.keyboardState.shiftKey) {
       // Shift + 鼠标左键 中心对齐替换
-      buildMsg("replace_align_center();"); 
+      buildMsg("replace_align_center(true);"); 
     } else {
       buildMsg("replace_align_position();");
     }
   };
-
 
   button6.onClick = function () {
     if (ScriptUI.environment.keyboardState.ctrlKey) {
@@ -149,6 +148,9 @@ function main_panel() {
   button7.onClick = function () {
     if (ScriptUI.environment.keyboardState.altKey) {
       buildMsg("size_by_controlBounds();");
+    }else if (ScriptUI.environment.keyboardState.shiftKey) {
+      // Shift + 鼠标左键 中心对齐
+      buildMsg("replace_align_center(false);"); 
     } else {
       buildMsg("size_by_width_height();");
     }
@@ -289,7 +291,7 @@ function icon_panel() {
       buildMsg("img_pack_links();");
     } else if (ScriptUI.environment.keyboardState.shiftKey) {
       // Shift + 鼠标左键 中心对齐替换
-      buildMsg("replace_align_center();"); 
+      buildMsg("replace_align_center(true);"); 
     } else {
       buildMsg("replace_align_position();");
     }
@@ -310,6 +312,9 @@ function icon_panel() {
   button7.onClick = function () {
     if (ScriptUI.environment.keyboardState.altKey) {
       buildMsg("size_by_controlBounds();");
+    }else if (ScriptUI.environment.keyboardState.shiftKey) {
+      // Shift + 鼠标左键 中心对齐
+      buildMsg("replace_align_center(false);"); 
     } else {
       buildMsg("size_by_width_height();");
     }
@@ -786,7 +791,7 @@ function replace_align_position() {
 
 
 // 拼版中心对齐
-function replace_align_center() {
+function replace_align_center(objremove) {
   var docRef = activeDocument;
   // 判断选择物件2个以上
   if (docRef.selection.length > 1) {
@@ -796,7 +801,6 @@ function replace_align_center() {
     // 最上层物件为替换源
     var sourceObj = docRef.selection[0];
 
-
     // 定义数组用来保存选择物件的中心坐标 # 计算中心坐标
     // x = (left + right) / 2    // y = (top + bottom) / 2
     var alterObjectArray = new Array();
@@ -805,23 +809,24 @@ function replace_align_center() {
       var sel_xy = new Array((bound[0] + bound[2]) / 2, (bound[1] + bound[3]) / 2);
       alterObjectArray.push(sel_xy);
     }
+
     // 删除用来定位的下层物件
-    for (var i = 1; i < mySelection.length; i++) {
+    for (var i = 1; (i < mySelection.length) && objremove; i++) {
       mySelection[i].remove();
     }
+
+    // 获得替换源物件中心坐标
+    var bound = NO_CLIP_BOUNDS(sourceObj);
+    var src_xy = new Array((bound[0] + bound[2]) / 2, (bound[1] + bound[3]) / 2);
+
     // PageItem.duplicate 复制对象, 需要一个相对对象定位
     var newGroup = sourceObj.parent.groupItems.add();
     for (var i = 1; i < alterObjectArray.length; i++) {
-      
-      var bound = NO_CLIP_BOUNDS(sourceObj);
-      var src_xy = new Array((bound[0] + bound[2]) / 2, (bound[1] + bound[3]) / 2);
+      var newobj = sourceObj.duplicate(newGroup, ElementPlacement.PLACEATEND);
       var move_xy = new Array(alterObjectArray[i][0] - src_xy[0], alterObjectArray[i][1] - src_xy[1]);
-
-      sourceObj.translate(move_xy[0], move_xy[1]);  // 移动到中心对齐位置
-      sourceObj.duplicate(newGroup, ElementPlacement.PLACEATEND);
+      newobj.translate(move_xy[0], move_xy[1]); 
     }
     sourceObj.remove();
-
   }
 }
 
