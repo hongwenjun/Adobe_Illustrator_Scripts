@@ -1,7 +1,10 @@
 ﻿#target illustrator
 #targetengine main
 
-var vs = "illustrator-" + app.version.substr(0, 2);
+﻿var bit = 64;//AI软件系统位数，默认64位，如果点击合集面板按钮没有反应，可以将64改为32。
+var aiVersion = app.version.split('.')[0];
+var vs = "illustrator-" + aiVersion + ".0" + bit;
+
 var IconsFolder = "C:/TSP/icon";
 var micro_distance = "1";
 // 实际代码建立 buildMsg(code) 函数传送代码
@@ -816,8 +819,9 @@ function replace_align_center(objremove) {
     }
 
     // 获得替换源物件中心坐标
-    var bound = NO_CLIP_BOUNDS(sourceObj);
-    var src_xy = new Array((bound[0] + bound[2]) / 2, (bound[1] + bound[3]) / 2);
+    // var bound = NO_CLIP_BOUNDS(sourceObj);
+    // var src_xy = new Array((bound[0] + bound[2]) / 2, (bound[1] + bound[3]) / 2);
+    var src_xy = alterObjectArray[0];
 
     // PageItem.duplicate 复制对象, 需要一个相对对象定位
     var newGroup = sourceObj.parent.groupItems.add();
@@ -830,7 +834,6 @@ function replace_align_center(objremove) {
   }
 }
 
-
 // 读取加载jsxbin文件，传递给AI软件
 function load_jsxbin(file) {
   var file = new File(file);
@@ -842,6 +845,10 @@ function load_jsxbin(file) {
     alert('文件打开失败: ' + file);
   }
 }
+
+
+
+
 //==========  以下插件引用使用互联网各位大大的插件  =================//
 // 标注尺寸增强版 V2.1
 function make_size_plus() { load_jsxbin(IconsFolder + "/makesize.dat"); }
