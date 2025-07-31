@@ -424,10 +424,11 @@ function make_size() {
   var myFontSize = 24;
   var x, y;
 
-  // 格式化尺寸为 mm 取整数
-  function formatSize(size) {
-    return Math.round(size * mm).toFixed(0);
-  }
+// 格式化尺寸为 mm，按每 0.5 取整
+function formatSize5(size) {
+  var rd = Math.round(size * mm * 2) / 2;
+  return (rd % 1 === 0) ? Math.round(rd) : rd.toFixed(1);
+}
 
   // 设置填充颜色为CMYK红色 (0, 100, 100, 0)
   var cmykRed = new CMYKColor();
@@ -452,7 +453,7 @@ function make_size() {
     for (var i = 0; i < mySelection.length; i++) {
       var s = mySelection[i]
       x = s.left; y = s.top
-      var str = formatSize(s.width) + "x" + formatSize(s.height) + "mm";
+      var str = formatSize5(s.width) + "x" + formatSize5(s.height) + "mm";
       writeText(str)
     }
   }
