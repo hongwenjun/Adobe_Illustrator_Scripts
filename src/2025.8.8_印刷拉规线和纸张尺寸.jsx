@@ -14,20 +14,18 @@ var ph = 0;
 var x = base[0];    // 画板左下角 x 坐标
 var y = - base[1];  // 画板左下角 y 坐标
 var myFont = textFonts.getByName("MicrosoftYaHei");
-var myFontSize = 72;
+var myFontSize = 56;
 
 pw = doc.width;  //  文档宽
 ph = doc.height; //  文档高
 x = pw / 2 - x;     //  转换x坐标: 画板中下x
 
 if (pw < ph){   // 交换 pw 和 ph 的值
-    var temp = pw; 
-    pw = ph;
-    ph = temp;
+    var temp = pw; pw = ph; ph = temp;
 }
 
-pwcm = (pw * mm + 3 ) / 10.0;
-phcm = (ph * mm + 12 ) / 10.0;
+pwcm = (pw * mm + 2 ) / 10.0;
+phcm = (ph * mm + 10 ) / 10.0;
 str += pwcm.toFixed(0) + "x" + phcm.toFixed(0) + "cm  数量:" ;
 
 // 设置填充颜色为CMYK红色 (0, 100, 100, 0)
@@ -61,29 +59,58 @@ var p = doc.artboards[ABID].artboardRect; // 获取画板矩形
 
 s15mm = 15 / mm;
 var k100 = new CMYKColor();  k100.black = 100;
+var K10 = new CMYKColor();  K10.black = 10;
+var newGroup = doc.groupItems.add();
+function import_Pull_line(x, y, filePath ) {
+  var doc = app.activeDocument; // 确保获取当前文档
+  if (File(filePath).exists) {
+      var pdfFile = new File(filePath);
+      var pdfItem = doc.placedItems.add(); // 添加为链接文件
+      pdfItem.file = pdfFile;
+      pdfItem.position = [x, y]; // 使用参数设置位置
+
+      pdfItem.moveToEnd(newGroup);
+      pdfItem.embed(); // 将链接对象转为嵌入
+
+  } else {
+  //    alert(filePath + " 文件不存在！");
+  }
+}
 
 if (doc.width > doc.height){  
   // 创建标记: 印刷拉规线  //  正常印刷横页面，咬口在下
-  var r = doc.pathItems.rectangle(p[3] + s15mm * 2, p[2], s15mm, s15mm / 10);   // 参数 top, left, width, height
-  r.filled = true;   r.fillColor = k100         // 填充矩形
+  var r = doc.pathItems.rectangle(p[3] + s15mm *  7, p[2], s15mm, s15mm / 5);   // 参数 top, left, width, height
+  r.filled = true;   r.fillColor = k100;        // 填充矩形
 
-  var wr = doc.pathItems.rectangle(p[3] + s15mm * 2, p[0] - s15mm, s15mm, s15mm / 10);   // 参数 top, left, width, height
-  wr.filled = false; wr.stroked = false; r.stroked = false;      // 透明
+  var wr = doc.pathItems.rectangle(p[3] + s15mm *  7, p[0] - s15mm, s15mm, s15mm / 5);
+  wr.filled = true;  wr.fillColor = K10;
+  wr.stroked = false; r.stroked = false;      // 透明
+
+  import_Pull_line(r.position[0], r.position[1] - 5 / mm, "~/Documents/Pull_line.pdf");
 
   // 增大画板尺寸
   doc.artboards[ABID].artboardRect = [p[0] - s15mm, p[1], p[2] + s15mm, p[3]];     
  
-  var newGroup = doc.groupItems.add(); r.moveToEnd(newGroup);  wr.moveToEnd(newGroup);    // 群组
+  r.moveToEnd(newGroup);  wr.moveToEnd(newGroup);    // 群组
+
 } else { 
   // 创建标记: 印刷拉规线   //  正常印刷竖页面，咬口在左边
-  var r = doc.pathItems.rectangle(p[3] , p[0] + s15mm * 2, s15mm/10, s15mm );   // 参数 top, left, width, height
+  var r = doc.pathItems.rectangle(p[3] , p[0] + s15mm *  7, s15mm / 5, s15mm );
   r.filled = true;   r.fillColor = k100 
 
-  var wr = doc.pathItems.rectangle(p[1] + s15mm, p[0] + s15mm * 2, s15mm/10, s15mm);   // 参数 top, left, width, height
-  wr.filled = false; wr.stroked = false; r.stroked = false;      // 透明
+  var wr = doc.pathItems.rectangle(p[1] + s15mm, p[0] + s15mm *  7, s15mm / 5, s15mm);
+  wr.filled = true;  wr.fillColor = K10;
+  wr.stroked = false; r.stroked = false;      // 透明
+
+  import_Pull_line(r.position[0] - 52 / mm , r.position[1], "~/Documents/Pull_line2.pdf");
 
   // 增大画板尺寸
   doc.artboards[ABID].artboardRect = [p[0], p[1] + s15mm, p[2] , p[3] - s15mm];     
 
-  var newGroup = doc.groupItems.add(); r.moveToEnd(newGroup);  wr.moveToEnd(newGroup);    // 群组
+  r.moveToEnd(newGroup);  wr.moveToEnd(newGroup);
 }
+
+// 取消选择
+var ss = doc.selection;  
+for (var i = 0; i < ss.length; i++)
+  ss[i].selected = false;
